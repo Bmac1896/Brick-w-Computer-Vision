@@ -5,7 +5,7 @@ import math
 
 # Authors: Brandon McDonald & Alex Brooks
 # Date: 7/13/2016
-# Compiler Interepereter: 2.7.12
+# Compiler: 2.7.12
 
 pygame.init()
 
@@ -14,12 +14,15 @@ black = (0, 0, 0)
 deep_purple = (175, 50, 200)
 red = (255, 0, 0)
 white = (255, 255, 255)
+blue = (90, 210, 235)
 frame_width = 1000
 frame_height = 650
 blockWidth = 150
 blockHeight = 20
 paddleSpeed = 10
-FPS = 30
+FPS = 60
+brickHeight = 50
+brickWidth = 100
 
 clock = pygame.time.Clock()
 
@@ -53,12 +56,21 @@ def gameLoop():
     block_y_pos = frame_height - blockHeight - 20
     ball_x_pos = frame_width / 2
     ball_y_pos = frame_height - 100
+
+    brick_y_pos = 200
     radius = 10
     block_x_change = 0
     ball_speed = 10
     ball_x_change = int(random.randrange(ball_speed - 1, ball_speed))
     ball_y_change = int(math.sqrt(math.pow(ball_speed, 2) - math.pow(ball_x_change, 2)))
     x_factor = 1 / math.pow(.5, 2)
+    num_bricks = 6
+    brick_exists = [None] * num_bricks
+    brick_x_pos = [None] * num_bricks
+
+    for i in range(0, num_bricks):
+        brick_x_pos[i] = i * (frame_width/num_bricks) + (frame_width/num_bricks) / 4
+        brick_exists[i] = True
 
     while not gameExit:
 
@@ -104,6 +116,14 @@ def gameLoop():
         pygame.draw.rect(gameDisplay, deep_purple, [block_x_pos, block_y_pos, blockWidth,
                                                     blockHeight])
         pygame.draw.circle(gameDisplay, white, [ball_x_pos, ball_y_pos], radius)
+
+        for num in range(0, num_bricks):
+            # Iterate Bricks
+            if not ((brick_x_pos[num] + radius <= ball_x_pos <= brick_x_pos[num] + brickWidth + radius) and (brick_y_pos + radius <= ball_y_pos <= brick_y_pos + brickHeight + radius)) and brick_exists[num] is True:
+                pygame.draw.rect(gameDisplay, blue, [brick_x_pos[num], brick_y_pos, brickWidth, brickHeight])
+            else:
+                brick_exists[num] = False
+
         pygame.display.update()
 
         while gameOver == True:
