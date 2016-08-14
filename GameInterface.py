@@ -15,6 +15,7 @@ deep_purple = (175, 50, 200)
 red = (255, 0, 0)
 white = (255, 255, 255)
 blue = (90, 210, 235)
+yellow = (255, 255, 0)
 frame_width = 1000
 frame_height = 650
 blockWidth = 150
@@ -23,6 +24,7 @@ paddleSpeed = 10
 FPS = 60
 brickHeight = 50
 brickWidth = 100
+
 
 clock = pygame.time.Clock()
 
@@ -41,14 +43,16 @@ def message_screen(msg, color):
     screen_text = font.render(msg, True, color)
     gameDisplay.blit(screen_text, [frame_width / 4, frame_height / 2])
 
+def lives_message(msg, color):
+    screen_text = font.render(msg, True, color)
+    gameDisplay.blit(screen_text, [10, 10])
 
 message_screen("Welcome! Raise Your Hand In Front Of Your Webcam To Begin!", deep_purple)
 pygame.display.update()
 time.sleep(3)
 
-
 # --------------GameLoop-------------------
-def gameLoop():
+def gameLoop(lives=3):
     # Changing Variables
     gameExit = False
     gameOver = False
@@ -56,17 +60,18 @@ def gameLoop():
     block_y_pos = frame_height - blockHeight - 20
     ball_x_pos = frame_width / 2
     ball_y_pos = frame_height - 100
-
     brick_y_pos = 200
     radius = 10
     block_x_change = 0
-    ball_speed = 10
+    ball_speed = 5
     ball_x_change = int(random.randrange(ball_speed - 1, ball_speed))
     ball_y_change = int(math.sqrt(math.pow(ball_speed, 2) - math.pow(ball_x_change, 2)))
     x_factor = 1 / math.pow(.5, 2)
     num_bricks = 6
     brick_exists = [None] * num_bricks
     brick_x_pos = [None] * num_bricks
+    num_lives = lives
+
 
     for i in range(0, num_bricks):
         brick_x_pos[i] = i * (frame_width/num_bricks) + (frame_width/num_bricks) / 4
@@ -101,8 +106,15 @@ def gameLoop():
             if paddle_percentage < 0:
                 ball_x_change *= -1
             ball_y_change = math.sqrt(math.pow(ball_speed, 2) - math.pow(ball_x_change, 2)) * -1
-        if ball_y_pos - radius <= 0 or ball_y_pos + radius >= frame_height:
+        if ball_y_pos - radius <= 0:
             ball_y_change *= -1
+
+        if num_lives < 0:
+            gameOver = True
+        elif ball_y_pos + radius >= frame_height:
+            num_lives -= 1
+            gameLoop(num_lives)
+
         if ball_x_pos - radius <= 0 or ball_x_pos + radius >= frame_width:
             ball_x_change *= -1
         if ball_y_change == 0:
@@ -121,9 +133,14 @@ def gameLoop():
             # Iterate Bricks
             if not ((brick_x_pos[num] + radius <= ball_x_pos <= brick_x_pos[num] + brickWidth + radius) and (brick_y_pos + radius <= ball_y_pos <= brick_y_pos + brickHeight + radius)) and brick_exists[num] is True:
                 pygame.draw.rect(gameDisplay, blue, [brick_x_pos[num], brick_y_pos, brickWidth, brickHeight])
-            else:
+            elif ((brick_x_pos[num] + radius <= ball_x_pos <= brick_x_pos[num] + brickWidth + radius) and (brick_y_pos + radius <= ball_y_pos <= brick_y_pos + brickHeight + radius)) and brick_exists[num] is True:
+                ball_y_change *= -1
                 brick_exists[num] = False
 
+
+
+
+        lives_message("Lives: " + str(num_lives), yellow)
         pygame.display.update()
 
         while gameOver == True:
